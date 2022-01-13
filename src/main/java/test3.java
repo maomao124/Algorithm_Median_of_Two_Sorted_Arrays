@@ -1,100 +1,98 @@
 /**
  * Project name(项目名称)：算法_Median_of_Two_Sorted_Arrays
  * Package(包名): PACKAGE_NAME
- * Class(类名): test
+ * Class(类名): test3
  * Author(作者）: mao
  * Author QQ：1296193245
  * GitHub：https://github.com/maomao124/
  * Date(创建日期)： 2022/1/13
- * Time(创建时间)： 14:33
+ * Time(创建时间)： 20:01
  * Version(版本): 1.0
- * Description(描述)： 已知两个有序数组，找到两个数组合并后的中位数。
- * 解法一
- * 先将两个数组合并，两个有序数组的合并也是归并排序中的一部分。然后根据奇数，还是偶数，返回中位数。
- * 时间复杂度：遍历全部数组，O（m + n）
- * 空间复杂度：开辟了一个数组，保存合并后的两个数组，O（m + n）
+ * Description(描述)： 解法四
+ * 将 i 的左边和 j 的左边组合成「左半部分」，将 i 的右边和 j 的右边组合成「右半部分」。
+ * 当 A 数组和 B 数组的总长度是偶数时，如果我们能够保证
+ * * 左半部分的长度等于右半部分
+ * i + j = m - i  + n - j  , 也就是 j = ( m + n ) / 2 - i
+ * 左半部分最大的值小于等于右半部分最小的值 max ( A [ i - 1 ] , B [ j - 1 ]）） <=  min ( A [ i ] , B [ j ]））
+ * 那么，中位数就可以表示如下
+ * （左半部分最大值 + 右半部分最小值 ）/ 2 。
+ * （max ( A [ i - 1 ] , B [  j  - 1 ]）+ min ( A [ i ] , B [ j ]）） /  2
+ * 当 A 数组和 B 数组的总长度是奇数时，如果我们能够保证
+ * 左半部分的长度比右半部分大 1
+ * i + j = m - i  + n - j  + 1也就是 j = ( m + n + 1) / 2 - i
+ * 左半部分最大的值小于等于右半部分最小的值 max (  A [ i - 1 ] , B [ j - 1 ]）） <=  min ( A [ i ] , B [ j ]））
+ * 那么，中位数就是
+ * 左半部分最大值，也就是左半部比右半部分多出的那一个数。
+ * max ( A [ i - 1 ] , B [  j - 1 ]）
  */
 
-public class test
+public class test3
 {
-    public double findMedianSortedArrays(int[] nums1, int[] nums2)
+    public double findMedianSortedArrays(int[] A, int[] B)
     {
-        int[] nums;
-        int m = nums1.length;
-        int n = nums2.length;
-        nums = new int[m + n];
-        if (m == 0)
+        int m = A.length;
+        int n = B.length;
+        if (m > n)
         {
-            if (n % 2 == 0)
-            {
-                return (nums2[n / 2 - 1] + nums2[n / 2]) / 2.0;
+            return findMedianSortedArrays(B, A); // 保证 m <= n
+        }
+        int iMin = 0, iMax = m;
+        while (iMin <= iMax)
+        {
+            int i = (iMin + iMax) / 2;
+            int j = (m + n + 1) / 2 - i;
+            if (j != 0 && i != m && B[j - 1] > A[i])
+            { // i 需要增大
+                iMin = i + 1;
+            }
+            else if (i != 0 && j != n && A[i - 1] > B[j])
+            { // i 需要减小
+                iMax = i - 1;
             }
             else
-            {
-
-                return nums2[n / 2];
-            }
-        }
-        if (n == 0)
-        {
-            if (m % 2 == 0)
-            {
-                return (nums1[m / 2 - 1] + nums1[m / 2]) / 2.0;
-            }
-            else
-            {
-                return nums1[m / 2];
-            }
-        }
-
-        int count = 0;
-        int i = 0, j = 0;
-        while (count != (m + n))
-        {
-            if (i == m)
-            {
-                while (j != n)
+            { // 达到要求，并且将边界条件列出来单独考虑
+                int maxLeft = 0;
+                if (i == 0)
                 {
-                    nums[count++] = nums2[j++];
+                    maxLeft = B[j - 1];
                 }
-                break;
-            }
-            if (j == n)
-            {
-                while (i != m)
+                else if (j == 0)
                 {
-                    nums[count++] = nums1[i++];
+                    maxLeft = A[i - 1];
                 }
-                break;
-            }
+                else
+                {
+                    maxLeft = Math.max(A[i - 1], B[j - 1]);
+                }
+                if ((m + n) % 2 == 1)
+                {
+                    return maxLeft;
+                } // 奇数的话不需要考虑右半部分
 
-            if (nums1[i] < nums2[j])
-            {
-                nums[count++] = nums1[i++];
-            }
-            else
-            {
-                nums[count++] = nums2[j++];
-            }
-        }
+                int minRight = 0;
+                if (i == m)
+                {
+                    minRight = B[j];
+                }
+                else if (j == n)
+                {
+                    minRight = A[i];
+                }
+                else
+                {
+                    minRight = Math.min(B[j], A[i]);
+                }
 
-        if (count % 2 == 0)
-        {
-            return (nums[count / 2 - 1] + nums[count / 2]) / 2.0;
+                return (maxLeft + minRight) / 2.0; //如果是偶数的话返回结果
+            }
         }
-        else
-        {
-            return nums[count / 2];
-        }
+        return 0.0;
     }
 
     public static void main(String[] args)
     {
-        test t = new test();
-        System.out.println("已知两个有序数组，找到两个数组合并后的中位数");
-        System.out.println("解法一\n" +
-                "先将两个数组合并，两个有序数组的合并也是归并排序中的一部分。然后根据奇数，还是偶数，返回中位数");
-
+        test3 t = new test3();
+        System.out.println("解法四");
         int[] nums1 = {1, 2, 3, 4, 5, 6, 7, 8};
         int[] nums2 = {5, 6, 7, 8, 9, 10, 11, 12};
         System.out.print("nums1");
@@ -153,14 +151,5 @@ public class test
         memory = memory / 1024 / 1024;
         System.out.printf("已使用的内存：%.4fMB\n", memory);
         //------------------------------------------------------
-
-        System.out.println();
-        test1.main(null);
-
-        System.out.println();
-        test2.main(null);
-
-        System.out.println();
-        test3.main(null);
     }
 }

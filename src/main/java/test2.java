@@ -1,100 +1,64 @@
 /**
  * Project name(项目名称)：算法_Median_of_Two_Sorted_Arrays
  * Package(包名): PACKAGE_NAME
- * Class(类名): test
+ * Class(类名): test2
  * Author(作者）: mao
  * Author QQ：1296193245
  * GitHub：https://github.com/maomao124/
  * Date(创建日期)： 2022/1/13
- * Time(创建时间)： 14:33
+ * Time(创建时间)： 19:47
  * Version(版本): 1.0
- * Description(描述)： 已知两个有序数组，找到两个数组合并后的中位数。
- * 解法一
- * 先将两个数组合并，两个有序数组的合并也是归并排序中的一部分。然后根据奇数，还是偶数，返回中位数。
- * 时间复杂度：遍历全部数组，O（m + n）
- * 空间复杂度：开辟了一个数组，保存合并后的两个数组，O（m + n）
+ * Description(描述)： 解法三   二分的方法
+ * 我们比较两个数组的第 k / 2 个数字，如果 k 是奇数，向下取整。也就是比较第 3 个数字，上边数组中的 4 和 下边数组中的 3 ，如果哪个小，
+ * 就表明该数组的前 k / 2 个数字都不是第 k 小数字，所以可以排除。也就是 1，2，3 这三个数字不可能是第 7 小的数字，我们可以把它排除掉。
+ * 将 1 3 4 9 和 4 5 6 7 8 9 10 两个数组作为新的数组进行比较。
+ * 更一般的情况 A [ 1 ]，A [ 2 ]，A [ 3 ]，A [ k / 2] ... ，B[ 1 ]，B [ 2 ]，B [ 3 ]，B[ k / 2] ... ，
+ * 如果 A [ k / 2 ] < B [ k / 2 ] ，那么 A [ 1 ]，A [ 2 ]，A [ 3 ]，A [ k / 2] 都不可能是第 k 小的数字。
+ * A 数组中比 A [ k / 2 ] 小的数有 k / 2 - 1 个，B 数组中，B [ k / 2 ] 比 A [ k / 2 ] 大，
+ * 假设 B [ k / 2 ] 前边的数字都比 A [ k / 2 ] 小，也只有 k / 2 - 1 个，所以比 A [ k / 2 ] 小的数字最多有
+ * k / 2 - 1 +  k / 2 - 1 = k - 2 个，所以 A [ k / 2 ]  最多是第 k - 1 小的数。
+ * 而比 A [ k / 2 ] 小的数更不可能是第 k 小的数了，所以可以把它们排除。
  */
 
-public class test
+public class test2
 {
     public double findMedianSortedArrays(int[] nums1, int[] nums2)
     {
-        int[] nums;
-        int m = nums1.length;
-        int n = nums2.length;
-        nums = new int[m + n];
-        if (m == 0)
-        {
-            if (n % 2 == 0)
-            {
-                return (nums2[n / 2 - 1] + nums2[n / 2]) / 2.0;
-            }
-            else
-            {
+        int n = nums1.length;
+        int m = nums2.length;
+        int left = (n + m + 1) / 2;
+        int right = (n + m + 2) / 2;
+        //将偶数和奇数的情况合并，如果是奇数，会求两次同样的 k 。
+        return (getKth(nums1, 0, n - 1, nums2, 0, m - 1, left) + getKth(nums1, 0, n - 1, nums2, 0, m - 1, right)) * 0.5;
+    }
 
-                return nums2[n / 2];
-            }
-        }
-        if (n == 0)
-        {
-            if (m % 2 == 0)
-            {
-                return (nums1[m / 2 - 1] + nums1[m / 2]) / 2.0;
-            }
-            else
-            {
-                return nums1[m / 2];
-            }
-        }
+    private int getKth(int[] nums1, int start1, int end1, int[] nums2, int start2, int end2, int k)
+    {
+        int len1 = end1 - start1 + 1;
+        int len2 = end2 - start2 + 1;
+        //让 len1 的长度小于 len2，这样就能保证如果有数组空了，一定是 len1
+        if (len1 > len2) return getKth(nums2, start2, end2, nums1, start1, end1, k);
+        if (len1 == 0) return nums2[start2 + k - 1];
 
-        int count = 0;
-        int i = 0, j = 0;
-        while (count != (m + n))
-        {
-            if (i == m)
-            {
-                while (j != n)
-                {
-                    nums[count++] = nums2[j++];
-                }
-                break;
-            }
-            if (j == n)
-            {
-                while (i != m)
-                {
-                    nums[count++] = nums1[i++];
-                }
-                break;
-            }
+        if (k == 1) return Math.min(nums1[start1], nums2[start2]);
 
-            if (nums1[i] < nums2[j])
-            {
-                nums[count++] = nums1[i++];
-            }
-            else
-            {
-                nums[count++] = nums2[j++];
-            }
-        }
+        int i = start1 + Math.min(len1, k / 2) - 1;
+        int j = start2 + Math.min(len2, k / 2) - 1;
 
-        if (count % 2 == 0)
+        if (nums1[i] > nums2[j])
         {
-            return (nums[count / 2 - 1] + nums[count / 2]) / 2.0;
+            return getKth(nums1, start1, end1, nums2, j + 1, end2, k - (j - start2 + 1));
         }
         else
         {
-            return nums[count / 2];
+            return getKth(nums1, i + 1, end1, nums2, start2, end2, k - (i - start1 + 1));
         }
     }
 
     public static void main(String[] args)
     {
-        test t = new test();
-        System.out.println("已知两个有序数组，找到两个数组合并后的中位数");
-        System.out.println("解法一\n" +
-                "先将两个数组合并，两个有序数组的合并也是归并排序中的一部分。然后根据奇数，还是偶数，返回中位数");
-
+        test2 t = new test2();
+        System.out.println("解法三");
         int[] nums1 = {1, 2, 3, 4, 5, 6, 7, 8};
         int[] nums2 = {5, 6, 7, 8, 9, 10, 11, 12};
         System.out.print("nums1");
@@ -153,14 +117,5 @@ public class test
         memory = memory / 1024 / 1024;
         System.out.printf("已使用的内存：%.4fMB\n", memory);
         //------------------------------------------------------
-
-        System.out.println();
-        test1.main(null);
-
-        System.out.println();
-        test2.main(null);
-
-        System.out.println();
-        test3.main(null);
     }
 }
